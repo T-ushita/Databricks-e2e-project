@@ -1,4 +1,55 @@
-# This is a basic automation workflow to help you get started with GitHub Actions.
+# This is a basic automation workflow to help you get sname: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push for main and dev branch
+  push:
+    paths-ignore:
+      - .github
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: development
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN:  ${{ secrets.DATABRICKS_TOKEN }}
+      REPO_PATH: /Workspace/Users/tushitasingh24@gmail.com/Databricks-e2e-project
+      # DBFS_LIB_PATH: dbfs:/path/to/libraries/
+      # LATEST_WHEEL_NAME: latest_wheel_name.whl
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.8
+
+      - uses: databricks/setup-cli@main
+
+      # - name: Install mods
+      #   run: |
+      #     pip install pytest setuptools wheel
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+
+      - name: Update Databricks Git folder
+        run: |
+          databricks repos update ${{env.REPO_PATH}} --branch "${{ steps.extract_branch.outputs.branch }}"
+
+      # - name: Build Wheel and send to Databricks DBFS workspace location
+      #   run: |
+      #     cd $GITHUB_WORKSPACE
+      #     python setup.py bdist_wheel
+      #     dbfs cp --overwrite ./dist/* ${{env.DBFS_LIB_PATH}}
+      #     dbfs cp --overwrite ./dist/* ${{env.DBFS_LIB_PATH}}${{env.LATEST_WHEEL_NAME}}
+tarted with GitHub Actions.
 
 name: CI
 
